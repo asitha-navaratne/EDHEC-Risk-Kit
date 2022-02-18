@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import scipy.stats
 from scipy.stats import norm
+from scipy.optimize import minimize
 
 def drawdown(return_series: pd.Series):
     """
@@ -230,3 +231,4 @@ def plot_ef(n_points, er, cov):
         "Volatility": vols
     })
     return ef.plot.line(x="Volatility", y="Returns", style=".-")
+
