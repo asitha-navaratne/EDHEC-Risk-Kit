@@ -247,7 +247,15 @@ def max_sharpe_ratio(riskfree_rate, er, cov):
                       )
     return results.x
 
-def plot_ef(n_points, er, cov, show_cml=False, riskfree_rate=0):
+def gmv(cov):
+    """
+    Returns the weight of the Global Minimum Vol portfolio 
+    given covariance matrix
+    """
+    n = cov.shape[0]
+    return max_sharpe_ratio(0, np.repeat(1,n), cov)
+
+def plot_ef(n_points, er, cov, show_cml=False, riskfree_rate=0, show_ew=False, show_gmv=False):
     """
     Plots the N-asset efficient frontier
     """
@@ -259,6 +267,19 @@ def plot_ef(n_points, er, cov, show_cml=False, riskfree_rate=0):
         "Volatility": vols
     })
     ax = ef.plot.line(x="Volatility", y="Returns", style=".-")
+    if show_ew:
+        n = er.shape[0]
+        w_ew = np.repeat(1/n, n)
+        r_ew = portfolio_return(w_ew, er)
+        vol_ew = portfolio_vol(w_ew, cov)
+        # Display EW
+        ax.plot([vol_ew], [r_ew], color="goldenrod", marker="o", markersize=10)
+    if show_gmv:
+        w_gmv = gmv(cov)
+        r_gmv = portfolio_return(w_gmv, er)
+        vol_gmv = portfolio_vol(w_gmv, cov)
+        # Display GMV
+        ax.plot([vol_gmv], [r_gmv], color="midnightblue", marker="o", markersize=10)
     if show_cml:
         ax.set_xlim(left = 0)
         rf = 0.1
