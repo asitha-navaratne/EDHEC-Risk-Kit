@@ -441,3 +441,15 @@ def funding_ratio(assets, liabilities, r):
     Computes the funding ratio of some assets given liabilities and interest rates
     """
     return assets/pv(liabilities, r)
+    
+def inst_to_ann(r):
+    """
+    Converts short rate to an annualized rate
+    """
+    return np.expm1(r)
+
+def ann_to_inst(r):
+    """
+    Converts annualized rate to short rate
+    """
+    return np.log1p(r)
