@@ -517,3 +517,22 @@ def bond_price(maturity, principal=100, coupon_rate=0.03, coupons_per_year=12, d
     """
     cash_flows = bond_cash_flows(maturity, principal, coupon_rate, coupons_per_year)
     return pv(cash_flows, discount_rate/coupons_per_year)
+
+def macaulay_duration(flows, discount_rate):
+    """
+    Computes the Macaulay Duration of a sequence of cash flows
+    """
+    discounted_flows = discount(flows.index, discount_rate)*flows
+    weights = discounted_flows/discounted_flows.sum()
+    return np.average(flows.index, weights=weights)
+
+def match_durations(cf_t, cf_s, cf_l, discount_rate):
+    """
+    Returns the weight W in cf_s that, along with (1-W) in cf_l will have an effective
+    duration that matches cf_t
+    """
+    d_t = macaulay_duration(cf_t, discount_rate)
+    d_s = macaulay_duration(cf_s, discount_rate)
+    d_l = macaulay_duration(cf_l, discount_rate)
+    return (d_l - d_t)/(d_l - d_s)
+
