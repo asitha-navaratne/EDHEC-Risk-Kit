@@ -433,15 +433,14 @@ def discount(t, r):
     discounts.index = t
     return discounts
 
-def pv(l, r):
+def pv(flows, r):
     """
-    Computes the present value of a sequence of liabilities
-    l is indexed by the time, and the values are the amounts of each liability
-    returns the present value of the sequence
+    Compute the present value of a sequence of cash flows given by the time (as an index) and amounts
+    r can be a scalar, or a Series or DataFrame with the number of rows matching the num of rows in flows
     """
-    dates = l.index
+    dates = flows.index
     discounts = discount(dates, r)
-    return (discounts*l).sum()
+    return discounts.multiply(flows, axis='rows').sum()
 
 def funding_ratio(assets, liabilities, r):
     """
