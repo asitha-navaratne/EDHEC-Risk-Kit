@@ -512,16 +512,28 @@ def bond_cash_flows(maturity, principal=100, coupon_rate=0.03, coupons_per_year=
     cash_flows = pd.Series(data=coupon_amt, index=coupon_times)
     cash_flows.iloc[-1] += principal # add the principal to the last payment
     return cash_flows
-    
+
 def bond_price(maturity, principal=100, coupon_rate=0.03, coupons_per_year=12, discount_rate=0.03):
     """
     Computes the price of a bond that pays regular coupons until maturity
     at which time the principal and the final coupon is returned
     This is not designed to be efficient, rather,
     it is to illustrate the underlying principle behind bond pricing!
+    If discount_rate is a DataFrame, then this is assumed to be the rate on each coupon date
+    and the bond value is computed over time.
+    i.e. The index of the discount_rate DataFrame is assumed to be the coupon number
     """
-    cash_flows = bond_cash_flows(maturity, principal, coupon_rate, coupons_per_year)
-    return pv(cash_flows, discount_rate/coupons_per_year)
+    if isinstance(discount_rate, pd.DataFrame):
+        pricing_dates = discount_rate.index
+        prices = pd.DataFrame(index=pricing_dates, columns=discount_rate.columns)
+        for t in pricing_dates:
+            prices.loc[t] = bond_price(maturity-t/coupons_per_year, principal, coupon_rate, coupons_per_year,
+                                      discount_rate.loc[t])
+        return prices
+    else: # base case ... single time period
+        if maturity <= 0: return principal+principal*coupon_rate/coupons_per_year
+        cash_flows = bond_cash_flows(maturity, principal, coupon_rate, coupons_per_year)
+        return pv(cash_flows, discount_rate/coupons_per_year)
 
 def macaulay_duration(flows, discount_rate):
     """
