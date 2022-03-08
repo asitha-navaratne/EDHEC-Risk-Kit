@@ -566,3 +566,28 @@ def bond_total_return(monthly_prices, principal, coupon_rate, coupons_per_year):
     total_returns = (monthly_prices + coupons)/monthly_prices.shift()-1
     return total_returns.dropna()
 
+def fixedmix_allocator(r1, r2, w1, **kwargs):
+    """
+    Produces a time series over T steps of allocations between the PSP and GHP across N scenarios
+    PSP and GHP are T x N DataFrames that represent the returns of the PSP and GHP such that:
+     each column is a scenario
+     each row is the price for a timestep
+    Returns an T x N DataFrame of PSP Weights
+    """
+    return pd.DataFrame(data=w1, index=r1.index, columns=r1.columns)
+
+def bt_mix(r1, r2, allocator, **kwargs):
+    """
+    Runs a back test (simulation) of allocating between a two sets of returns
+    r1 and r2 are T x N DataFrames or returns where T is the time step index and N is the number of scenarios.
+    allocator is a function that takes two sets of returns and allocator specific parameters, and produces
+    an allocation to the first portfolio (the rest of the money is invested in the GHP) as a T x 1 DataFrame
+    Returns a T x N DataFrame of the resulting N portfolio scenarios
+    """
+    if not r1.shape == r2.shape:
+        raise ValueError("r1 and r2 need to be the same shape")
+    weights = allocator(r1, r2, **kwargs)
+    if not weights.shape == r1.shape:
+        raise ValueError("Allocator returned weights that don't match r1")
+    r_mix = weights*r1 + (1-weights)*r2
+    return r_mix
